@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-label="ISOCS">
+  
+  <rect width="64" height="64" rx="14" fill="#1f7a95"></rect>
+  
+  <path d="M 10 38 Q 32 8 54 38" fill="none" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round"></path>
+  
+  <text x="32" y="52" text-anchor="middle" font-family="&#39;Inter&#39;,&#39;Helvetica Neue&#39;,Arial,sans-serif" font-weight="800" font-size="18" fill="#ffffff" letter-spacing="-0.5">ISOCS</text>
+</svg>

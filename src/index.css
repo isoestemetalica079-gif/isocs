@@ -1,0 +1,192 @@
+@import "tailwindcss";
+
+/* CSS Variables for Dark Mode */
+:root {
+  --bg-base: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ffffff;
+  --bg-hover: #f1f5f9;
+  --bg-muted: #f8fafc;
+  --border: #e2e8f0;
+  --border-strong: #cbd5e1;
+  --text-primary: #1e293b;
+  --text-secondary: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  --accent: #1f7a95;
+  --accent-hover: #186278;
+  --accent-soft: #e6f1f5;
+  --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --topbar-bg: #ffffff;
+  --topbar-border: #e2e8f0;
+}
+
+html.dark {
+  --bg-base: #0f1419;
+  --bg-surface: #1a2129;
+  --bg-elevated: #232c36;
+  --bg-hover: #2a3440;
+  --bg-muted: #161c23;
+  --border: #2a3440;
+  --border-strong: #3a4654;
+  --text-primary: #e6eaef;
+  --text-secondary: #c9ced3;
+  --text-muted: #94a3b8;
+  --text-faint: #64748b;
+  --accent: #2bb3d4;
+  --accent-hover: #1f95b5;
+  --accent-soft: rgba(43, 179, 212, 0.15);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --topbar-bg: #1a2129;
+  --topbar-border: #2a3440;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    transition: background-color 0.2s, color 0.2s;
+    @apply m-0;
+  }
+
+  #root { width: 100%; }
+
+  /* Dark mode overrides for hardcoded Tailwind classes */
+  html.dark .bg-white { @apply !bg-slate-800; background-color: var(--bg-surface) !important; }
+  html.dark .bg-slate-50 { background-color: var(--bg-muted) !important; }
+  html.dark .bg-slate-100 { background-color: var(--bg-hover) !important; }
+  html.dark .hover\:bg-slate-50:hover { background-color: var(--bg-hover) !important; }
+  html.dark .hover\:bg-slate-100:hover { background-color: var(--bg-hover) !important; }
+  html.dark .border-slate-200 { border-color: var(--border) !important; }
+  html.dark .border-slate-100 { border-color: var(--border) !important; }
+  html.dark .divide-slate-200 > * + * { border-color: var(--border) !important; }
+  html.dark .divide-slate-100 > * + * { border-color: var(--border) !important; }
+  html.dark .text-slate-900, html.dark .text-slate-800 { color: var(--text-primary) !important; }
+  html.dark .text-slate-700, html.dark .text-slate-600 { color: var(--text-secondary) !important; }
+  html.dark .text-slate-500 { color: var(--text-muted) !important; }
+  html.dark .text-slate-400, html.dark .text-slate-300 { color: var(--text-faint) !important; }
+  html.dark input,
+  html.dark select,
+  html.dark textarea {
+    background-color: var(--bg-elevated);
+    color: var(--text-primary);
+    border-color: var(--border);
+  }
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: var(--text-faint);
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply font-medium px-4 py-2 rounded-lg transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer;
+    background-color: var(--accent);
+    color: #ffffff;
+  }
+  .btn-primary:hover {
+    background-color: var(--accent-hover);
+  }
+
+  .btn-secondary {
+    @apply font-medium px-4 py-2 rounded-lg border transition-colors duration-150 cursor-pointer;
+    background-color: var(--bg-surface);
+    color: var(--text-secondary);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover {
+    background-color: var(--bg-hover);
+  }
+
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-150 cursor-pointer;
+  }
+
+  .btn-ghost {
+    @apply font-medium px-3 py-2 rounded-lg transition-colors duration-150 cursor-pointer;
+    color: var(--text-secondary);
+    background-color: transparent;
+  }
+  .btn-ghost:hover {
+    background-color: var(--bg-hover);
+  }
+
+  .card {
+    background-color: var(--bg-surface);
+    border-color: var(--border);
+    border-width: 1px;
+    border-radius: 12px;
+    box-shadow: var(--shadow-card);
+  }
+
+  .input, .select {
+    @apply w-full rounded-lg px-3 py-2 text-sm transition-all;
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
+    border-color: var(--border);
+    border-width: 1px;
+  }
+  .input:focus, .select:focus {
+    outline: none;
+    border-color: transparent;
+    box-shadow: 0 0 0 2px var(--accent);
+  }
+
+  .label {
+    @apply block text-xs font-semibold uppercase tracking-wide mb-1;
+    color: var(--text-muted);
+  }
+
+  .status-badge {
+    @apply inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap;
+  }
+
+  /* Theme Toggle Slider */
+  .theme-toggle {
+    position: relative;
+    width: 52px;
+    height: 28px;
+    border-radius: 999px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.2s;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .theme-toggle:hover {
+    background: var(--border);
+  }
+
+  .theme-toggle .knob {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 22px;
+    height: 22px;
+    border-radius: 999px;
+    background: var(--bg-surface);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.25s cubic-bezier(0.4, 0.2, 0.2, 1), background 0.2s;
+    color: var(--accent);
+  }
+
+  html.dark .theme-toggle .knob {
+    transform: translateX(24px);
+  }
+}

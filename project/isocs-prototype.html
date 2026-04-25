@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ISOCS — Protótipo de Interface</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* ---------- tokens ---------- */
+  :root{
+    --bg-base:#f8fafc; --bg-surface:#ffffff; --bg-elevated:#ffffff; --bg-hover:#f1f5f9; --bg-muted:#f8fafc;
+    --border:#e2e8f0; --border-strong:#cbd5e1;
+    --text-primary:#1e293b; --text-secondary:#334155; --text-muted:#64748b; --text-faint:#94a3b8;
+    --topbar-bg:#ffffff; --topbar-border:#e2e8f0;
+    --accent:#1f7a95; --accent-hover:#186278; --accent-soft:#e6f1f5;
+    --shadow-card:0 1px 2px rgba(15,23,42,.04);
+  }
+  html[data-theme="dark"]{
+    --bg-base:#0f1419; --bg-surface:#1a2129; --bg-elevated:#232c36; --bg-hover:#2a3440; --bg-muted:#161c23;
+    --border:#2a3440; --border-strong:#3a4654;
+    --text-primary:#e6eaef; --text-secondary:#c9ced3; --text-muted:#94a3b8; --text-faint:#64748b;
+    --topbar-bg:#1a2129; --topbar-border:#2a3440;
+    --accent:#2bb3d4; --accent-hover:#1f95b5; --accent-soft:rgba(43,179,212,.15);
+    --shadow-card:0 1px 2px rgba(0,0,0,.3);
+  }
+
+  html,body,#root{height:100%;margin:0;font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg-base);color:var(--text-primary);transition:background-color .2s, color .2s;}
+
+  .card{background:var(--bg-surface);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow-card);}
+  .label{display:block;font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;}
+  .input,.select{width:100%;border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;background:var(--bg-surface);color:var(--text-primary);outline:none;transition:all .15s;}
+  .input:focus,.select:focus{border-color:transparent;box-shadow:0 0 0 2px var(--accent);}
+  .btn-primary{background:var(--accent);color:#fff;font-weight:500;padding:8px 16px;border-radius:8px;font-size:14px;cursor:pointer;border:0;transition:background .15s;}
+  .btn-primary:hover{background:var(--accent-hover);}
+  .btn-secondary{background:var(--bg-surface);color:var(--text-secondary);font-weight:500;padding:8px 16px;border-radius:8px;border:1px solid var(--border);font-size:14px;cursor:pointer;}
+  .btn-secondary:hover{background:var(--bg-hover);}
+  .btn-ghost{color:var(--text-secondary);font-weight:500;padding:8px 12px;border-radius:8px;background:transparent;border:0;font-size:14px;cursor:pointer;}
+  .btn-ghost:hover{background:var(--bg-hover);}
+  .icon{width:1em;height:1em;display:inline-block;vertical-align:-.125em;}
+
+  /* ---------- dark-mode overrides for hardcoded Tailwind classes ---------- */
+  html[data-theme="dark"] .bg-white{background-color:var(--bg-surface)!important;}
+  html[data-theme="dark"] .bg-slate-50{background-color:var(--bg-muted)!important;}
+  html[data-theme="dark"] .bg-slate-100{background-color:var(--bg-hover)!important;}
+  html[data-theme="dark"] .hover\:bg-slate-50:hover{background-color:var(--bg-hover)!important;}
+  html[data-theme="dark"] .hover\:bg-slate-100:hover{background-color:var(--bg-hover)!important;}
+  html[data-theme="dark"] .border-slate-200{border-color:var(--border)!important;}
+  html[data-theme="dark"] .border-slate-100{border-color:var(--border)!important;}
+  html[data-theme="dark"] .divide-slate-200 > *+*{border-color:var(--border)!important;}
+  html[data-theme="dark"] .divide-slate-100 > *+*{border-color:var(--border)!important;}
+  html[data-theme="dark"] .text-slate-900{color:var(--text-primary)!important;}
+  html[data-theme="dark"] .text-slate-800{color:var(--text-primary)!important;}
+  html[data-theme="dark"] .text-slate-700{color:var(--text-secondary)!important;}
+  html[data-theme="dark"] .text-slate-600{color:var(--text-secondary)!important;}
+  html[data-theme="dark"] .text-slate-500{color:var(--text-muted)!important;}
+  html[data-theme="dark"] .text-slate-400{color:var(--text-faint)!important;}
+  html[data-theme="dark"] .text-slate-300{color:var(--text-faint)!important;}
+  html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background-color:var(--bg-elevated);color:var(--text-primary);border-color:var(--border);}
+  html[data-theme="dark"] input::placeholder,html[data-theme="dark"] textarea::placeholder{color:var(--text-faint);}
+
+  /* theme toggle button */
+  .theme-toggle{position:relative;width:52px;height:28px;border-radius:999px;background:var(--bg-hover);border:1px solid var(--border);cursor:pointer;transition:background .2s;padding:0;display:inline-flex;align-items:center;}
+  .theme-toggle:hover{background:var(--border);}
+  .theme-toggle .knob{position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:999px;background:var(--bg-surface);box-shadow:0 2px 4px rgba(0,0,0,.15);display:flex;align-items:center;justify-content:center;transition:transform .25s cubic-bezier(.4,.2,.2,1),background .2s;color:var(--accent);}
+  html[data-theme="dark"] .theme-toggle .knob{transform:translateX(24px);}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+
+/* ---------------- ICONS (inline SVG) ---------------- */
+const Icon = ({ d, size = 16, stroke = 2, fill = 'none', children, ...rest }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+    fill={fill} stroke="currentColor" strokeWidth={stroke} strokeLinecap="round" strokeLinejoin="round" {...rest}>
+    {children || <path d={d} />}
+  </svg>
+);
+const IDashboard = p => <Icon size={p.size||17}><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></Icon>;
+const IFile = p => <Icon size={p.size||17}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></Icon>;
+const IFolder = p => <Icon size={p.size||17}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></Icon>;
+const ICalc = p => <Icon size={p.size||17}><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="11" x2="8" y2="11"/><line x1="12" y1="11" x2="12" y2="11"/><line x1="16" y1="11" x2="16" y2="11"/><line x1="8" y1="15" x2="8" y2="15"/><line x1="12" y1="15" x2="12" y2="15"/><line x1="16" y1="15" x2="16" y2="15"/><line x1="8" y1="19" x2="12" y2="19"/></Icon>;
+const IRuler = p => <Icon size={p.size||17}><path d="M21.3 8.7L15.3 2.7a1 1 0 0 0-1.4 0L2.7 13.9a1 1 0 0 0 0 1.4l6 6a1 1 0 0 0 1.4 0l11.2-11.2a1 1 0 0 0 0-1.4z"/><path d="M7 17l-3-3"/><path d="M11 13l-2-2"/><path d="M15 9l-2-2"/><path d="M19 5l-2-2"/></Icon>;
+const IAward = p => <Icon size={p.size||17}><circle cx="12" cy="8" r="6"/><polyline points="8.21 13.89 7 22 12 19 17 22 15.79 13.88"/></Icon>;
+const IUsers = p => <Icon size={p.size||17}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></Icon>;
+const ILogOut = p => <Icon size={p.size||16}><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></Icon>;
+const IBuilding = p => <Icon size={p.size||18}><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M16 6h.01"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 14h.01"/><path d="M16 10h.01"/><path d="M16 14h.01"/><path d="M8 10h.01"/><path d="M8 14h.01"/></Icon>;
+const IChevronRight = p => <Icon size={p.size||14}><polyline points="9 18 15 12 9 6"/></Icon>;
+const IPlus = p => <Icon size={p.size||16}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></Icon>;
+const ISearch = p => <Icon size={p.size||15}><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></Icon>;
+const IPencil = p => <Icon size={p.size||14}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></Icon>;
+const ITrash = p => <Icon size={p.size||14}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></Icon>;
+const IX = p => <Icon size={p.size||18}><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="18" x2="18" y2="6"/></Icon>;
+const ITrendUp = p => <Icon size={p.size||20}><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></Icon>;
+const ICheck = p => <Icon size={p.size||20}><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></Icon>;
+const IClock = p => <Icon size={p.size||20}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></Icon>;
+const IAlert = p => <Icon size={p.size||20}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></Icon>;
+const IMail = p => <Icon size={p.size||14}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></Icon>;
+const ILock = p => <Icon size={p.size||14}><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></Icon>;
+const IFilter = p => <Icon size={p.size||15}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></Icon>;
+const IDown = p => <Icon size={p.size||14}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></Icon>;
+const IBell = p => <Icon size={p.size||18}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></Icon>;
+const ISun = p => <Icon size={p.size||14}><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></Icon>;
+const IMoon = p => <Icon size={p.size||14}><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></Icon>;
+const ITool = p => <Icon size={p.size||17}><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></Icon>;
+const ISettings = p => <Icon size={p.size||18}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></Icon>;
+
+/* ---------------- MOCK DATA ---------------- */
+const MESES = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+
+const ORCAMENTOS = [
+  { id:1, status:'APROVADO', fluig:'18472', mes:'MARÇO', cliente:'Construtora Vitale', projeto:'Residencial Aurora — Bloco A', tipologia:'SOBRADO LUXO', area:382, valorTotal:285400, responsavel:'Marcelo Duarte', entrada:'12/03/2026', fechado:'SIM', rFechado:278000, reparticao:'NEXFRAME' },
+  { id:2, status:'EM ANÁLISE', fluig:'18501', mes:'ABRIL', cliente:'Grupo Baumann', projeto:'Galpão Industrial II', tipologia:'GALPÃO', area:1240, valorTotal:612000, responsavel:'Camila Reis', entrada:'02/04/2026', fechado:'NÃO', reparticao:'ISOTELHADO' },
+  { id:3, status:'PENDENTE', fluig:'18555', mes:'ABRIL', cliente:'Alphaville Engenharia', projeto:'Condomínio Terra Alta — 24 unidades', tipologia:'CASA ALTO PADRÃO', area:2880, valorTotal:1740000, responsavel:'Marcelo Duarte', entrada:'15/04/2026', fechado:'NÃO', reparticao:'NEXFRAME' },
+  { id:4, status:'APROVAÇÃO CLIENTE', fluig:'18489', mes:'MARÇO', cliente:'Santoro Construções', projeto:'Sobrado Vila Madalena', tipologia:'SOBRADO ALTO PADRÃO', area:420, valorTotal:312000, responsavel:'Felipe Rocha', entrada:'22/03/2026', fechado:'NÃO', reparticao:'NEXFRAME' },
+  { id:5, status:'FINALIZADO', fluig:'18321', mes:'FEVEREIRO', cliente:'Incorporadora Lume', projeto:'Torre Comercial Pinheiros', tipologia:'COMERCIAL', area:1680, valorTotal:945000, responsavel:'Camila Reis', entrada:'14/02/2026', fechado:'SIM', rFechado:921000, reparticao:'ISOTELHADO' },
+  { id:6, status:'CANCELADO', fluig:'18290', mes:'FEVEREIRO', cliente:'Toledo & Filhos', projeto:'Galpão Logístico SP‑070', tipologia:'GALPÃO', area:2100, valorTotal:785000, responsavel:'Marcelo Duarte', entrada:'05/02/2026', fechado:'NÃO', reparticao:'ISOTELHADO' },
+  { id:7, status:'APROVADO', fluig:'18612', mes:'ABRIL', cliente:'Família Hayashi', projeto:'Casa Jardim Europa', tipologia:'CASA ALTO PADRÃO', area:520, valorTotal:398000, responsavel:'Felipe Rocha', entrada:'18/04/2026', fechado:'SIM', rFechado:392000, reparticao:'NEXFRAME' },
+  { id:8, status:'NÃO FECHADO', fluig:'18401', mes:'MARÇO', cliente:'Arquitetos Associados', projeto:'Clínica Médica Moema', tipologia:'COMERCIAL', area:310, valorTotal:248000, responsavel:'Camila Reis', entrada:'08/03/2026', fechado:'NÃO', reparticao:'ISOTELHADO' },
+  { id:9, status:'EM ANÁLISE', fluig:'18634', mes:'ABRIL', cliente:'Pátio Empreendimentos', projeto:'Cobertura Brooklin', tipologia:'COB. PONTALETES', area:180, valorTotal:142000, responsavel:'Felipe Rocha', entrada:'20/04/2026', fechado:'NÃO', reparticao:'NEXFRAME' },
+];
+
+const PROJETOS = [
+  { id:1, status:'EM ANDAMENTO', mf:'MF-241', fluig:'18472', mes:'MARÇO', cliente:'Construtora Vitale', projeto:'Residencial Aurora — Bloco A', tipologia:'SOBRADO LUXO', area:382, proposta:'12/03/26', aprovCliente:'18/03/26', implantacao:'25/03/26', rTotal:278000 },
+  { id:2, status:'COMPATIBILIZAÇÃO', mf:'MF-238', fluig:'18321', mes:'FEVEREIRO', cliente:'Incorporadora Lume', projeto:'Torre Comercial Pinheiros', tipologia:'COMERCIAL', area:1680, proposta:'14/02/26', aprovCliente:'22/02/26', implantacao:'—', rTotal:921000 },
+  { id:3, status:'APROVAÇÃO CLIENTE', mf:'MF-245', fluig:'18612', mes:'ABRIL', cliente:'Família Hayashi', projeto:'Casa Jardim Europa', tipologia:'CASA ALTO PADRÃO', area:520, proposta:'18/04/26', aprovCliente:'—', implantacao:'—', rTotal:392000 },
+  { id:4, status:'CADASTRO', mf:'MF-244', fluig:'18489', mes:'MARÇO', cliente:'Santoro Construções', projeto:'Sobrado Vila Madalena', tipologia:'SOBRADO ALTO PADRÃO', area:420, proposta:'22/03/26', aprovCliente:'—', implantacao:'—', rTotal:312000 },
+  { id:5, status:'FINALIZADO', mf:'MF-230', fluig:'18102', mes:'JANEIRO', cliente:'Construtora Horizonte', projeto:'Residencial Vista Serra', tipologia:'CASA ALTO PADRÃO', area:640, proposta:'10/01/26', aprovCliente:'17/01/26', implantacao:'03/02/26', rTotal:512000 },
+  { id:6, status:'CONTROLADORIA', mf:'MF-239', fluig:'18355', mes:'FEVEREIRO', cliente:'Marquetti Engenharia', projeto:'Centro Logístico ABC', tipologia:'INDUSTRIAL', area:3200, proposta:'25/02/26', aprovCliente:'04/03/26', implantacao:'—', rTotal:1380000 },
+];
+
+const CALCULOS = [
+  { id:1, status:'ENTREGUE', projeto:'Residencial Aurora — Bloco A', cliente:'Construtora Vitale', metodologia:'DETALHADO', escopo:'PROJETO COMPLETO', responsavel:'Eng. André Luz', entrega:'28/03/26' },
+  { id:2, status:'EM EXECUÇÃO', projeto:'Galpão Industrial II', cliente:'Grupo Baumann', metodologia:'ESTIMATIVA', escopo:'ISO COMP', responsavel:'Eng. Rafaela Dias', entrega:'—' },
+  { id:3, status:'PENDENTE', projeto:'Torre Comercial Pinheiros', cliente:'Incorporadora Lume', metodologia:'DETALHADO', escopo:'NXF PROJ', responsavel:'Eng. André Luz', entrega:'—' },
+  { id:4, status:'ENTREGUE', projeto:'Residencial Vista Serra', cliente:'Construtora Horizonte', metodologia:'LEVANTAMENTO', escopo:'PROJETO COMPLETO', responsavel:'Eng. Rafaela Dias', entrega:'29/01/26' },
+];
+
+const ARTS = [
+  { id:1, status:'EMITIDA', numero:'2026/0412', modalidade:'PROJETO E EXECUÇÃO', cliente:'Construtora Vitale', projeto:'Residencial Aurora — Bloco A', crea:'SP-1.802.114', emissao:'02/04/26', fechado:'SIM' },
+  { id:2, status:'AGENDADO FINANCEIRO', numero:'2026/0418', modalidade:'PROJETO', cliente:'Família Hayashi', projeto:'Casa Jardim Europa', crea:'SP-1.802.114', emissao:'—', fechado:'NÃO' },
+  { id:3, status:'PENDENTE', numero:'—', modalidade:'EXECUÇÃO', cliente:'Grupo Baumann', projeto:'Galpão Industrial II', crea:'—', emissao:'—', fechado:'NÃO' },
+  { id:4, status:'APROVAÇÃO RASCUNHO', numero:'2026/0421', modalidade:'PROJETO', cliente:'Incorporadora Lume', projeto:'Torre Comercial Pinheiros', crea:'SP-1.802.114', emissao:'—', fechado:'NÃO' },
+  { id:5, status:'FINALIZADO', numero:'2026/0388', modalidade:'PROJETO E EXECUÇÃO', cliente:'Construtora Horizonte', projeto:'Residencial Vista Serra', crea:'SP-1.802.114', emissao:'22/01/26', fechado:'SIM' },
+];
+
+const USUARIOS = [
+  { id:1, nome:'Marcelo Duarte', email:'marcelo.duarte@isocs.com.br', perfil:'gestor', ativo:true },
+  { id:2, nome:'Camila Reis', email:'camila.reis@isocs.com.br', perfil:'comercial', ativo:true },
+  { id:3, nome:'Felipe Rocha', email:'felipe.rocha@isocs.com.br', perfil:'comercial', ativo:true },
+  { id:4, nome:'Eng. André Luz', email:'andre.luz@isocs.com.br', perfil:'tecnico', ativo:true },
+  { id:5, nome:'Eng. Rafaela Dias', email:'rafaela.dias@isocs.com.br', perfil:'tecnico', ativo:true },
+  { id:6, nome:'Patricia Nunes', email:'patricia.nunes@isocs.com.br', perfil:'controladoria', ativo:true },
+];
+
+const PERFIL_ATUAL = { nome:'Marcelo Duarte', email:'marcelo.duarte@isocs.com.br', perfil:'gestor' };
+
+/* ---------------- STATUS BADGE ---------------- */
+const STATUS_COR = {
+  'PENDENTE':         { bg:'#fef9c3', fg:'#854d0e' },
+  'EM ANÁLISE':       { bg:'#dbeafe', fg:'#1e40af' },
+  'APROVAÇÃO CLIENTE':{ bg:'#e0e7ff', fg:'#3730a3' },
+  'APROVADO':         { bg:'#ede9fe', fg:'#5b21b6' },
+  'FINALIZADO':       { bg:'#dcfce7', fg:'#166534' },
+  'CANCELADO':        { bg:'#fee2e2', fg:'#991b1b' },
+  'NÃO FECHADO':      { bg:'#f1f5f9', fg:'#475569' },
+  'EM ANDAMENTO':     { bg:'#dbeafe', fg:'#1e40af' },
+  'COMPATIBILIZAÇÃO': { bg:'#fae8ff', fg:'#86198f' },
+  'CADASTRO':         { bg:'#ccfbf1', fg:'#115e59' },
+  'CONTROLADORIA':    { bg:'#ffedd5', fg:'#9a3412' },
+  'IMPLANTAÇÃO':      { bg:'#cffafe', fg:'#155e75' },
+  'APROVAÇÃO RASCUNHO':{bg:'#fef3c7', fg:'#92400e' },
+  'AGENDADO FINANCEIRO':{bg:'#e0e7ff', fg:'#3730a3' },
+  'EMITIDA':          { bg:'#dcfce7', fg:'#166534' },
+  'ENTREGUE':         { bg:'#dcfce7', fg:'#166534' },
+  'EM EXECUÇÃO':      { bg:'#dbeafe', fg:'#1e40af' },
+};
+function StatusBadge({ status }) {
+  const c = STATUS_COR[status] || { bg:'#f1f5f9', fg:'#475569' };
+  return (
+    <span style={{background:c.bg,color:c.fg}} className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold whitespace-nowrap tracking-wide">
+      {status}
+    </span>
+  );
+}
+
+const fmtMoeda = v => Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+
+/* ---------------- LOGIN ---------------- */
+function Login({ onLogin }) {
+  const [email,setEmail] = useState('marcelo.duarte@isocs.com.br');
+  const [senha,setSenha] = useState('••••••••');
+  const [loading,setLoading] = useState(false);
+  const [erro,setErro] = useState('');
+  const submit = e => {
+    e.preventDefault();
+    setErro(''); setLoading(true);
+    setTimeout(()=>{ setLoading(false); onLogin(); }, 600);
+  };
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4" style={{background:'linear-gradient(135deg,#1a2129 0%,#0f3441 50%,#1a2129 100%)'}}>
+      <div className="w-full max-w-md">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center mb-4">
+            <img src="assets/isocs-logo.svg?v=1776890066046" alt="ISOCS" style={{width:300,borderRadius:14,boxShadow:'0 10px 30px rgba(0,0,0,.35)'}}/>
+          </div>
+          <p className="text-sm mt-2" style={{color:'#7fb8cc'}}>Sistema de Controle Departamental</p>
+        </div>
+        <div className="bg-white rounded-2xl shadow-2xl p-8">
+          <h2 className="text-xl font-semibold text-slate-800 mb-1">Entrar na plataforma</h2>
+          <p className="text-sm text-slate-500 mb-6">Construção a Seco · LSF</p>
+          <form onSubmit={submit} className="space-y-4">
+            <div>
+              <label className="label">E-mail</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><IMail/></span>
+                <input type="email" className="input pl-9" value={email} onChange={e=>setEmail(e.target.value)} required />
+              </div>
+            </div>
+            <div>
+              <label className="label">Senha</label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><ILock/></span>
+                <input type="password" className="input pl-9" value={senha} onChange={e=>setSenha(e.target.value)} required />
+              </div>
+            </div>
+            {erro && <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-200">{erro}</div>}
+            <button type="submit" className="btn-primary w-full py-2.5 mt-2" disabled={loading}>
+              {loading ? 'Entrando...' : 'Entrar'}
+            </button>
+          </form>
+          <button className="mt-4 text-xs text-blue-600 hover:text-blue-800 w-full text-center">Esqueci minha senha</button>
+        </div>
+        <p className="text-center text-slate-500 text-xs mt-6">© 2026 ISOCS · Construção a Seco</p>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- LAYOUT / SIDEBAR ---------------- */
+const NAV = [
+  { id:'dashboard', label:'Dashboard', icon:IDashboard },
+  { id:'orcamentos', label:'Orçamentos', icon:IFile },
+  { id:'projetos', label:'Projetos', icon:IFolder },
+  { id:'ferramentas', label:'Ferramentas', icon:ITool },
+  { id:'relatorios', label:'Relatórios', icon:IFile },
+  { id:'art', label:'ART', icon:IAward },
+  { id:'isotrack', label:'Isotrack', icon:IBuilding },
+];
+const ADMIN = [{ id:'admin', label:'Usuários', icon:IUsers }];
+
+function Sidebar({ route, setRoute, onLogout }) {
+  const initials = PERFIL_ATUAL.nome.split(' ').slice(0,2).map(n=>n[0]).join('').toUpperCase();
+  return (
+    <aside className="w-64 flex flex-col flex-shrink-0" style={{background:'#1a2129'}}>
+      <div className="px-5 py-5 border-b" style={{borderColor:'#2a3440'}}>
+        <img src="assets/isocs-logo.svg?v=1776890066046" alt="ISOCS" style={{width:'100%',maxWidth:200,borderRadius:8,display:'block'}}/>
+      </div>
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-widest px-3 mb-2">Menu</p>
+        {NAV.map(item => {
+          const active = route === item.id;
+          const IconC = item.icon;
+          return (
+            <button key={item.id} onClick={()=>setRoute(item.id)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              style={active
+                ? { background:'#1f7a95', color:'#fff' }
+                : { background:'transparent', color:'#94a3b8' }}
+              onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='#2a3440';e.currentTarget.style.color='#fff';}}}
+              onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color='#94a3b8';}}}
+            >
+              <IconC size={17}/>
+              <span className="flex-1 text-left">{item.label}</span>
+              {active && <IChevronRight size={14}/>}
+            </button>
+          );
+        })}
+        <p className="text-slate-500 text-[10px] font-semibold uppercase tracking-widest px-3 mt-5 mb-2">Administração</p>
+        {ADMIN.map(item => {
+          const active = route === item.id;
+          const IconC = item.icon;
+          return (
+            <button key={item.id} onClick={()=>setRoute(item.id)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors"
+              style={active
+                ? { background:'#1f7a95', color:'#fff' }
+                : { background:'transparent', color:'#94a3b8' }}
+              onMouseEnter={e=>{ if(!active){e.currentTarget.style.background='#2a3440';e.currentTarget.style.color='#fff';}}}
+              onMouseLeave={e=>{ if(!active){e.currentTarget.style.background='transparent';e.currentTarget.style.color='#94a3b8';}}}
+            >
+              <IconC size={17}/>
+              <span className="flex-1 text-left">{item.label}</span>
+              {active && <IChevronRight size={14}/>}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="px-3 pb-4 pt-3 border-t" style={{borderColor:'#2a3440'}}>
+        <div className="flex items-center gap-3 px-3 py-2 rounded-lg">
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0" style={{background:'#1f7a95'}}>{initials}</div>
+          <div className="flex-1 min-w-0">
+            <p className="text-white text-sm font-medium truncate">{PERFIL_ATUAL.nome}</p>
+            <p className="text-slate-400 text-xs capitalize truncate">{PERFIL_ATUAL.perfil}</p>
+          </div>
+          <button onClick={onLogout} title="Sair" className="text-slate-400 hover:text-red-400 transition-colors"><ILogOut/></button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function Topbar({ titulo, theme, onToggleTheme }) {
+  return (
+    <header className="h-14 border-b flex items-center justify-between px-6 flex-shrink-0" style={{background:'var(--topbar-bg)',borderColor:'var(--topbar-border)'}}>
+      <div className="flex items-center gap-2 text-sm">
+        <span className="text-slate-400">ISOCS</span>
+        <span className="text-slate-300">/</span>
+        <span className="font-medium text-slate-700">{titulo}</span>
+      </div>
+      <div className="flex items-center gap-3">
+        <button className="theme-toggle" onClick={onToggleTheme} title={theme==='dark'?'Mudar para tema claro':'Mudar para tema escuro'} aria-label="Alternar tema">
+          <span className="knob">{theme==='dark' ? <IMoon size={12}/> : <ISun size={12}/>}</span>
+        </button>
+        <button className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 relative">
+          <IBell/>
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500"></span>
+        </button>
+        <button className="p-2 rounded-lg text-slate-500 hover:bg-slate-100"><ISettings/></button>
+      </div>
+    </header>
+  );
+}
+
+/* ---------------- DASHBOARD ---------------- */
+function KpiCard({ label, value, sub, icon:IconC, cor }) {
+  const cores = {
+    blue:{bg:'#e6f1f5',fg:'#1f7a95'}, green:{bg:'#f0fdf4',fg:'#16a34a'},
+    orange:{bg:'#fff7ed',fg:'#ea580c'}, purple:{bg:'#faf5ff',fg:'#9333ea'},
+    teal:{bg:'#f0fdfa',fg:'#0d9488'}, red:{bg:'#fef2f2',fg:'#dc2626'},
+  };
+  const c = cores[cor] || cores.blue;
+  return (
+    <div className="card p-5 flex items-start gap-4">
+      <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:c.bg,color:c.fg}}>
+        <IconC size={20}/>
+      </div>
+      <div className="min-w-0">
+        <p className="text-xs text-slate-500 font-medium uppercase tracking-wide">{label}</p>
+        <p className="text-2xl font-bold text-slate-900 mt-0.5">{value}</p>
+        {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
+      </div>
+    </div>
+  );
+}
+function BarraStatus({ label, count, total, cor }) {
+  const pct = total > 0 ? Math.round((count/total)*100) : 0;
+  const cores = { yellow:'#facc15', blue:'#1f7a95', green:'#22c55e', red:'#f87171', purple:'#c084fc', slate:'#cbd5e1', orange:'#fb923c', teal:'#2dd4bf', indigo:'#818cf8' };
+  return (
+    <div className="flex items-center gap-3">
+      <span className="text-xs text-slate-500 w-44 truncate">{label}</span>
+      <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+        <div style={{width:`${pct}%`,background:cores[cor]||'#3b82f6',height:'100%',borderRadius:9999,transition:'width .5s'}}/>
+      </div>
+      <span className="text-xs font-semibold text-slate-700 w-8 text-right">{count}</span>
+    </div>
+  );
+}
+
+function Dashboard() {
+  const [mesFiltro, setMesFiltro] = useState(() => localStorage.getItem('isocs_dash_mes') || 'ABRIL');
+  const [repFiltro, setRepFiltro] = useState(() => localStorage.getItem('isocs_dash_rep') || 'TODAS');
+  useEffect(() => { localStorage.setItem('isocs_dash_mes', mesFiltro); }, [mesFiltro]);
+  useEffect(() => { localStorage.setItem('isocs_dash_rep', repFiltro); }, [repFiltro]);
+
+  const MESES_DISPONIVEIS = ['TODOS','JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
+  const MES_ABREV = { JANEIRO:'JAN', FEVEREIRO:'FEV', MARÇO:'MAR', ABRIL:'ABR', MAIO:'MAI', JUNHO:'JUN', JULHO:'JUL', AGOSTO:'AGO', SETEMBRO:'SET', OUTUBRO:'OUT', NOVEMBRO:'NOV', DEZEMBRO:'DEZ' };
+  const REPARTICOES = ['TODAS','NEXFRAME','ISOTELHADO'];
+
+  let orcFiltrados = mesFiltro === 'TODOS' ? ORCAMENTOS : ORCAMENTOS.filter(o => o.mes === mesFiltro);
+  let projFiltrados = mesFiltro === 'TODOS' ? PROJETOS : PROJETOS.filter(p => p.mes === mesFiltro);
+  if (repFiltro !== 'TODAS') {
+    orcFiltrados = orcFiltrados.filter(o => o.reparticao === repFiltro);
+    projFiltrados = projFiltrados.filter(p => p.reparticao === repFiltro);
+  }
+  const projetosDoMes = new Set(orcFiltrados.map(o => o.projeto).concat(projFiltrados.map(p => p.projeto)));
+  const calcFiltrados = (mesFiltro === 'TODOS' && repFiltro === 'TODAS') ? CALCULOS : CALCULOS.filter(c => projetosDoMes.has(c.projeto));
+  const artsFiltradas = (mesFiltro === 'TODOS' && repFiltro === 'TODAS') ? ARTS : ARTS.filter(a => projetosDoMes.has(a.projeto));
+
+  const totalOrc = orcFiltrados.length;
+  const valorOrc = orcFiltrados.reduce((a,o)=>a+o.valorTotal,0);
+  const fechados = orcFiltrados.filter(o=>o.fechado==='SIM');
+  const valorFechado = fechados.reduce((a,o)=>a+(o.rFechado||0),0);
+  const taxa = totalOrc > 0 ? Math.round((fechados.length/totalOrc)*100) : 0;
+  const statusOrc = orcFiltrados.reduce((a,o)=>{a[o.status]=(a[o.status]||0)+1;return a;},{});
+  const statusProj = projFiltrados.reduce((a,p)=>{a[p.status]=(a[p.status]||0)+1;return a;},{});
+  const CORES_ORC = { 'PENDENTE':'yellow','EM ANÁLISE':'blue','APROVADO':'purple','APROVAÇÃO CLIENTE':'indigo','FINALIZADO':'green','CANCELADO':'red','NÃO FECHADO':'slate' };
+  const CORES_PROJ = { 'PENDENTE':'yellow','APROVAÇÃO CLIENTE':'blue','COMPATIBILIZAÇÃO':'purple','CADASTRO':'teal','CONTROLADORIA':'orange','IMPLANTAÇÃO':'blue','EM ANDAMENTO':'blue','FINALIZADO':'green','CANCELADO':'red' };
+
+  const porMes = [
+    {mes:'JAN', count:2, valor:640000},
+    {mes:'FEV', count:3, valor:1978000},
+    {mes:'MAR', count:3, valor:845400},
+    {mes:'ABR', count:4, valor:2892000},
+  ];
+  const maxVal = Math.max(...porMes.map(x=>x.valor));
+
+  return (
+    <div className="p-6 space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900">Olá, Marcelo 👋</h1>
+          <p className="text-slate-500 text-sm mt-1">
+            {mesFiltro === 'TODOS' ? 'Visão geral — ano de 2026' : `Visão do mês · ${mesFiltro.toLowerCase()} de 2026`}
+          </p>
+        </div>
+      </div>
+
+      <VisaoGeralContent {...{mesFiltro,setMesFiltro,repFiltro,setRepFiltro,MESES_DISPONIVEIS,MES_ABREV,REPARTICOES,orcFiltrados,projFiltrados,calcFiltrados,artsFiltradas,totalOrc,valorOrc,fechados,valorFechado,taxa,statusOrc,statusProj,CORES_ORC,CORES_PROJ,porMes,maxVal}}/>
+    </div>
+  );
+}
+
+function VisaoGeralContent({mesFiltro,setMesFiltro,repFiltro,setRepFiltro,MESES_DISPONIVEIS,MES_ABREV,REPARTICOES,orcFiltrados,projFiltrados,calcFiltrados,artsFiltradas,totalOrc,valorOrc,fechados,valorFechado,taxa,statusOrc,statusProj,CORES_ORC,CORES_PROJ,porMes,maxVal}) {
+  return (
+    <div className="space-y-6">
+
+      <div className="flex flex-wrap gap-1.5">
+        {MESES_DISPONIVEIS.map(m => {
+          const active = m === mesFiltro;
+          const label = m === 'TODOS' ? 'Todos' : (MES_ABREV[m] || m.slice(0,3));
+          return (
+            <button key={m} onClick={()=>setMesFiltro(m)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+              style={active
+                ? {background:'var(--accent)',color:'#fff',boxShadow:'0 1px 3px rgba(31,122,149,.3)'}
+                : {background:'var(--bg-surface)',color:'var(--text-muted)',border:'1px solid var(--border)'}}>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-[10px] font-semibold uppercase tracking-widest mr-1" style={{color:'var(--text-muted)'}}>Repartição</span>
+        {REPARTICOES.map(r => {
+          const active = r === repFiltro;
+          const label = r === 'TODAS' ? 'Todas' : r;
+          return (
+            <button key={r} onClick={()=>setRepFiltro(r)}
+              className="px-3 py-1.5 rounded-full text-xs font-semibold transition-all"
+              style={active
+                ? {background:'#1d4ed8',color:'#fff',boxShadow:'0 1px 3px rgba(29,78,216,.3)'}
+                : {background:'var(--bg-surface)',color:'var(--text-muted)',border:'1px solid var(--border)'}}>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <KpiCard label="Total Orçamentos" value={totalOrc} sub={fmtMoeda(valorOrc)} icon={IFile} cor="blue"/>
+        <KpiCard label="Fechados" value={fechados.length} sub={`${taxa}% conversão`} icon={ICheck} cor="green"/>
+        <KpiCard label="Projetos Ativos" value={projFiltrados.filter(p=>!['FINALIZADO','CANCELADO'].includes(p.status)).length} sub={`${projFiltrados.length} total`} icon={IFolder} cor="purple"/>
+        <KpiCard label="R$ Fechado" value={fmtMoeda(valorFechado)} sub="Valor contratado" icon={ITrendUp} cor="teal"/>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <KpiCard label="Cálculos" value={calcFiltrados.length} icon={ICalc} cor="orange"/>
+        <KpiCard label="ARTs" value={artsFiltradas.length} sub={`${artsFiltradas.filter(a=>a.fechado==='SIM').length} fechadas`} icon={IAward} cor="blue"/>
+        <KpiCard label="Pendentes" value={orcFiltrados.filter(o=>o.status==='PENDENTE').length} icon={IClock} cor="orange"/>
+        <KpiCard label="Cancelados" value={orcFiltrados.filter(o=>o.status==='CANCELADO').length} icon={IAlert} cor="red"/>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="card p-5">
+          <h2 className="text-sm font-bold text-slate-700 mb-4">Status dos Orçamentos</h2>
+          <div className="space-y-3">
+            {Object.entries(statusOrc).sort((a,b)=>b[1]-a[1]).map(([s,c])=>(
+              <BarraStatus key={s} label={s} count={c} total={totalOrc} cor={CORES_ORC[s]||'blue'}/>
+            ))}
+          </div>
+        </div>
+        <div className="card p-5">
+          <h2 className="text-sm font-bold text-slate-700 mb-4">Status dos Projetos</h2>
+          <div className="space-y-3">
+            {Object.entries(statusProj).sort((a,b)=>b[1]-a[1]).map(([s,c])=>(
+              <BarraStatus key={s} label={s} count={c} total={projFiltrados.length} cor={CORES_PROJ[s]||'blue'}/>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="card p-5">
+        <h2 className="text-sm font-bold text-slate-700 mb-4">Orçamentos por Mês · 2026</h2>
+        <div className="flex items-end gap-6 h-44">
+          {porMes.map(m=>{
+            const h = Math.max(Math.round((m.valor/maxVal)*140), 12);
+            const mesFull = Object.keys(MES_ABREV).find(k => MES_ABREV[k] === m.mes);
+            const selecionado = mesFiltro === mesFull;
+            const dimmed = mesFiltro !== 'TODOS' && !selecionado;
+            return (
+              <button key={m.mes} onClick={()=>setMesFiltro(selecionado ? 'TODOS' : mesFull)}
+                className="flex-1 flex flex-col items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0"
+                style={{opacity: dimmed ? 0.35 : 1, transition:'opacity .2s'}}
+                title={`Filtrar por ${mesFull?.toLowerCase()}`}>
+                <span className="text-[10px] text-slate-500 font-medium">{fmtMoeda(m.valor).replace('R$','').trim()}</span>
+                <div className="w-full rounded-t-md transition-all" style={{
+                  height:h,
+                  background: selecionado
+                    ? 'linear-gradient(180deg,#2bb3d4,#186278)'
+                    : 'linear-gradient(180deg,#3fa3be,#1f7a95)',
+                  boxShadow: selecionado ? '0 0 0 2px var(--accent)' : 'none'
+                }}/>
+                <span className="text-xs text-slate-500 mt-1">{m.mes}</span>
+                <span className="text-xs font-semibold text-slate-700">{m.count} orç.</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {['NEXFRAME','ISOTELHADO'].map(rep=>{
+          const orcs = orcFiltrados.filter(o=>o.reparticao===rep);
+          return (
+            <div key={rep} className="card p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-bold text-slate-700">{rep}</h2>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{background:'#eff6ff',color:'#1d4ed8'}}>REPARTIÇÃO</span>
+              </div>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><span className="text-slate-500 text-xs">Orçamentos</span><p className="font-bold text-slate-900 text-lg">{orcs.length}</p></div>
+                <div><span className="text-slate-500 text-xs">Fechados</span><p className="font-bold text-green-700 text-lg">{orcs.filter(o=>o.fechado==='SIM').length}</p></div>
+                <div><span className="text-slate-500 text-xs">Valor total</span><p className="font-bold text-slate-900">{fmtMoeda(orcs.reduce((a,o)=>a+o.valorTotal,0))}</p></div>
+                <div><span className="text-slate-500 text-xs">Área total</span><p className="font-bold text-slate-900">{orcs.reduce((a,o)=>a+(o.area||0),0).toLocaleString('pt-BR')} m²</p></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- ISOTRACK PAGE ---------------- */
+function Isotrack() {
+  return (
+    <div style={{width:'100%',height:'100%',display:'flex',flexDirection:'column'}}>
+      <div className="p-6 border-b flex-shrink-0" style={{borderColor:'var(--border)'}}>
+        <h1 className="text-2xl font-bold text-slate-900">Isotrack</h1>
+        <p className="text-slate-500 text-sm mt-1">Plataforma de rastreamento e controle de horas</p>
+      </div>
+      <iframe src="https://isoeste-horas-89f3a.web.app" 
+        style={{flex:1,border:'none',width:'100%'}}
+        title="Isotrack"/>
+    </div>
+  );
+}
+
+/* ---------------- FERRAMENTAS PAGE ---------------- */
+function Ferramentas() {
+  return (
+    <div className="p-6">
+      <PageHeader title="Ferramentas" subtitle="Recursos rápidos do departamento"/>
+      <FerramentasPanel/>
+    </div>
+  );
+}
+
+/* ---------------- FERRAMENTAS PANEL ---------------- */
+function FerramentasPanel() {
+  const [aberta, setAberta] = useState(null);
+  const ferramentas = [
+    { id:'orcamento', label:'Orçamento estimado', desc:'Cálculo rápido de valores por sistema construtivo', icon:ICalc, cor:'#1f7a95' },
+    { id:'nc', label:'Gerador de NC', desc:'Geração de notificações de conformidade', icon:IFile, cor:'#9333ea' },
+    { id:'calculadora', label:'Calculadora', desc:'Conversões, áreas e cálculos auxiliares', icon:IRuler, cor:'#ea580c' },
+  ];
+  return (
+    <div className="space-y-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {ferramentas.map(f => {
+          const IconC = f.icon;
+          const ativo = aberta === f.id;
+          return (
+            <button key={f.id} onClick={()=>setAberta(ativo ? null : f.id)}
+              className="card p-5 text-left flex items-start gap-4 transition-all"
+              style={{
+                cursor:'pointer',
+                borderColor: ativo ? f.cor : 'var(--border)',
+                boxShadow: ativo ? `0 0 0 2px ${f.cor}33` : 'var(--shadow-card)',
+              }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0" style={{background:f.cor+'1a',color:f.cor}}>
+                <IconC size={22}/>
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-bold text-slate-900">{f.label}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{f.desc}</p>
+              </div>
+              <IChevronRight size={16}/>
+            </button>
+          );
+        })}
+      </div>
+
+      {aberta === 'orcamento' && <OrcamentoEstimadoForm onClose={()=>setAberta(null)}/>}
+      {aberta === 'nc' && (
+        <div className="card p-6 text-center" style={{color:'var(--text-muted)'}}>
+          <p className="text-sm">Gerador de NC — em desenvolvimento.</p>
+        </div>
+      )}
+      {aberta === 'calculadora' && (
+        <div className="card p-6 text-center" style={{color:'var(--text-muted)'}}>
+          <p className="text-sm">Calculadora — em desenvolvimento.</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function OrcamentoEstimadoForm({ onClose }) {
+  const [valores, setValores] = useState({ NEXFRAME:'', ISOTELHADO:'', ISODRY:'', DRYFAST:'' });
+  const PRODUTOS = [
+    { id:'NEXFRAME', label:'NEXFRAME', desc:'Estrutura em light steel frame', cor:'#1f7a95' },
+    { id:'ISOTELHADO', label:'ISOTELHADO', desc:'Cobertura com painel isotérmico', cor:'#0d9488' },
+    { id:'ISODRY', label:'ISODRY', desc:'Vedação drywall com isolamento', cor:'#9333ea' },
+    { id:'DRYFAST', label:'DRYFAST', desc:'Sistema rápido de fechamento', cor:'#ea580c' },
+  ];
+  const set = (k,v) => setValores(prev => ({...prev, [k]: v}));
+  const precoM2 = { NEXFRAME: 1250, ISOTELHADO: 680, ISODRY: 420, DRYFAST: 350 };
+  const totais = Object.fromEntries(PRODUTOS.map(p => [p.id, (parseFloat(valores[p.id])||0) * precoM2[p.id]]));
+  const totalGeral = Object.values(totais).reduce((a,b)=>a+b,0);
+
+  return (
+    <div className="card p-6">
+      <div className="flex items-start justify-between mb-5">
+        <div>
+          <h3 className="text-lg font-bold text-slate-900">Orçamento estimado</h3>
+          <p className="text-xs text-slate-500 mt-1">Informe a área (m²) para cada sistema</p>
+        </div>
+        <button onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:bg-slate-100"><IX/></button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {PRODUTOS.map(p => (
+          <div key={p.id} className="p-4 rounded-xl border" style={{borderColor:'var(--border)',background:'var(--bg-muted)'}}>
+            <div className="flex items-center justify-between mb-2">
+              <div>
+                <p className="font-bold text-slate-900">{p.label}</p>
+                <p className="text-[11px] text-slate-500">{p.desc}</p>
+              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{background:p.cor+'1a',color:p.cor}}>
+                {fmtMoeda(precoM2[p.id])}/m²
+              </span>
+            </div>
+            <div className="flex items-center gap-2 mt-3">
+              <input type="number" min="0" step="any" value={valores[p.id]} onChange={e=>set(p.id, e.target.value)}
+                placeholder="0" className="input" style={{fontSize:16,fontWeight:600}}/>
+              <span className="text-sm font-semibold" style={{color:'var(--text-muted)'}}>m²</span>
+            </div>
+            <p className="text-xs mt-2 text-right font-semibold" style={{color:p.cor}}>
+              Subtotal: {fmtMoeda(totais[p.id])}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-5 pt-4 border-t flex items-center justify-between" style={{borderColor:'var(--border)'}}>
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{color:'var(--text-muted)'}}>Total estimado</p>
+          <p className="text-2xl font-bold text-slate-900 mt-0.5">{fmtMoeda(totalGeral)}</p>
+        </div>
+        <div className="flex gap-2">
+          <button className="btn-secondary" onClick={()=>setValores({NEXFRAME:'',ISOTELHADO:'',ISODRY:'',DRYFAST:''})}>Limpar</button>
+          <button className="btn-primary">Gerar orçamento</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- PAGE HEADER ---------------- */
+function PageHeader({ title, subtitle, actions }) {
+  return (
+    <div className="flex items-start justify-between mb-5">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
+        {subtitle && <p className="text-slate-500 text-sm mt-1">{subtitle}</p>}
+      </div>
+      <div className="flex items-center gap-2">{actions}</div>
+    </div>
+  );
+}
+
+/* ---------------- MODAL ---------------- */
+function Modal({ open, onClose, title, children }) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[85vh] overflow-hidden flex flex-col" onClick={e=>e.stopPropagation()}>
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+          <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400"><IX/></button>
+        </div>
+        <div className="flex-1 overflow-y-auto p-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- ORÇAMENTOS PAGE ---------------- */
+function Orcamentos() {
+  const [busca,setBusca] = useState('');
+  const [filtroStatus,setFiltroStatus] = useState('');
+  const [filtroMes,setFiltroMes] = useState('');
+  const [modalOpen,setModalOpen] = useState(false);
+  const [editando,setEditando] = useState(null);
+
+  const filtrado = useMemo(()=>ORCAMENTOS.filter(o=>{
+    const t = busca.toLowerCase();
+    return (!busca || o.cliente.toLowerCase().includes(t) || o.projeto.toLowerCase().includes(t) || String(o.fluig).includes(t))
+      && (!filtroStatus || o.status===filtroStatus)
+      && (!filtroMes || o.mes===filtroMes);
+  }), [busca, filtroStatus, filtroMes]);
+
+  const totalVal = filtrado.reduce((a,o)=>a+o.valorTotal,0);
+  const totalFechado = filtrado.filter(o=>o.fechado==='SIM').reduce((a,o)=>a+(o.rFechado||0),0);
+
+  return (
+    <div className="p-6">
+      <PageHeader title="Orçamentos" subtitle={`${filtrado.length} registro${filtrado.length!==1?'s':''} encontrado${filtrado.length!==1?'s':''}`}
+        actions={
+          <>
+            <button className="btn-secondary flex items-center gap-2"><IDown/> Exportar</button>
+            <button className="btn-primary flex items-center gap-2" onClick={()=>{setEditando(null);setModalOpen(true);}}><IPlus size={16}/> Novo Orçamento</button>
+          </>
+        }/>
+      <div className="card p-4 mb-5">
+        <div className="flex flex-wrap gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><ISearch/></span>
+            <input className="input pl-9" placeholder="Buscar por cliente, projeto, comercial, FLUIG..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+          </div>
+          <select className="select w-auto min-w-[180px]" value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)}>
+            <option value="">Todos os status</option>
+            {['PENDENTE','EM ANÁLISE','APROVAÇÃO CLIENTE','APROVADO','FINALIZADO','CANCELADO','NÃO FECHADO'].map(s=><option key={s}>{s}</option>)}
+          </select>
+          <select className="select w-auto min-w-[160px]" value={filtroMes} onChange={e=>setFiltroMes(e.target.value)}>
+            <option value="">Todos os meses</option>
+            {MESES.map(m=><option key={m}>{m}</option>)}
+          </select>
+          {(busca||filtroStatus||filtroMes) && (
+            <button className="btn-ghost text-sm" onClick={()=>{setBusca('');setFiltroStatus('');setFiltroMes('');}}>Limpar filtros</button>
+          )}
+        </div>
+      </div>
+
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                {['Status','FLUIG','Mês','Cliente','Projeto','Tipologia','Área (m²)','Valor Total','Responsável','Entrada',''].map(h=>(
+                  <th key={h} className="text-left px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-xs uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filtrado.map(o=>(
+                <tr key={o.id} className="hover:bg-slate-50 transition-colors">
+                  <td className="px-4 py-3"><StatusBadge status={o.status}/></td>
+                  <td className="px-4 py-3 text-slate-600 font-mono text-xs">{o.fluig}</td>
+                  <td className="px-4 py-3 text-slate-600">{o.mes}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 max-w-[180px] truncate">{o.cliente}</td>
+                  <td className="px-4 py-3 text-slate-600 max-w-[220px] truncate">{o.projeto}</td>
+                  <td className="px-4 py-3 text-slate-500 text-xs">{o.tipologia}</td>
+                  <td className="px-4 py-3 text-slate-600">{o.area.toLocaleString('pt-BR')}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-slate-900 whitespace-nowrap">{fmtMoeda(o.valorTotal)}</td>
+                  <td className="px-4 py-3 text-slate-600">{o.responsavel}</td>
+                  <td className="px-4 py-3 text-slate-500">{o.entrada}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1 justify-end">
+                      <button onClick={()=>{setEditando(o);setModalOpen(true);}} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><IPencil/></button>
+                      <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><ITrash/></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-4 py-3 bg-slate-50 border-t border-slate-200 flex items-center gap-6 text-sm flex-wrap">
+          <span className="text-slate-500">{filtrado.length} registros</span>
+          <span className="text-slate-500">Total: <strong className="text-slate-900">{fmtMoeda(totalVal)}</strong></span>
+          <span className="text-slate-500">Fechados: <strong className="text-green-700">{fmtMoeda(totalFechado)}</strong></span>
+        </div>
+      </div>
+
+      <Modal open={modalOpen} onClose={()=>setModalOpen(false)} title={editando?'Editar Orçamento':'Novo Orçamento'}>
+        <OrcamentoForm inicial={editando} onCancelar={()=>setModalOpen(false)} onSalvar={()=>setModalOpen(false)}/>
+      </Modal>
+    </div>
+  );
+}
+
+function OrcamentoForm({ inicial, onSalvar, onCancelar }) {
+  const [form,setForm] = useState(inicial || { status:'PENDENTE', reparticao:'NEXFRAME', tipologia:'SOBRADO LUXO', mes:'ABRIL', cliente:'', projeto:'', area:'', valorTotal:'' });
+  const set = (k,v) => setForm(p=>({...p,[k]:v}));
+  return (
+    <form onSubmit={e=>{e.preventDefault();onSalvar();}} className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div><label className="label">Status</label>
+          <select className="select" value={form.status} onChange={e=>set('status',e.target.value)}>
+            {['PENDENTE','EM ANÁLISE','APROVAÇÃO CLIENTE','APROVADO','FINALIZADO','CANCELADO','NÃO FECHADO'].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div><label className="label">Repartição</label>
+          <select className="select" value={form.reparticao} onChange={e=>set('reparticao',e.target.value)}>
+            {['NEXFRAME','ISOTELHADO','ISM'].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div><label className="label">FLUIG</label><input className="input" value={form.fluig||''} onChange={e=>set('fluig',e.target.value)} placeholder="00000"/></div>
+        <div><label className="label">Número MF</label><input className="input" value={form.mf||''} onChange={e=>set('mf',e.target.value)} placeholder="MF-000"/></div>
+        <div><label className="label">Mês</label>
+          <select className="select" value={form.mes} onChange={e=>set('mes',e.target.value)}>{MESES.map(m=><option key={m}>{m}</option>)}</select>
+        </div>
+        <div className="col-span-2"><label className="label">Cliente</label><input className="input" value={form.cliente} onChange={e=>set('cliente',e.target.value)} placeholder="Nome do cliente"/></div>
+        <div className="col-span-2"><label className="label">Projeto</label><input className="input" value={form.projeto} onChange={e=>set('projeto',e.target.value)} placeholder="Descrição do projeto"/></div>
+        <div><label className="label">Tipologia</label>
+          <select className="select" value={form.tipologia} onChange={e=>set('tipologia',e.target.value)}>
+            {['COB. PONTALETES','SOBRADO LUXO','SOBRADO ALTO PADRÃO','CASA ALTO PADRÃO','GALPÃO','COMERCIAL','INDUSTRIAL','MISTO'].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+        <div><label className="label">Responsável</label><input className="input" value={form.responsavel||''} onChange={e=>set('responsavel',e.target.value)} placeholder="Comercial"/></div>
+        <div><label className="label">Área (m²)</label><input className="input" type="number" value={form.area} onChange={e=>set('area',e.target.value)}/></div>
+        <div><label className="label">Valor Total (R$)</label><input className="input" type="number" value={form.valorTotal} onChange={e=>set('valorTotal',e.target.value)}/></div>
+      </div>
+      <div className="flex items-center justify-end gap-2 pt-4 border-t border-slate-200">
+        <button type="button" className="btn-secondary" onClick={onCancelar}>Cancelar</button>
+        <button type="submit" className="btn-primary">Salvar</button>
+      </div>
+    </form>
+  );
+}
+
+/* ---------------- PROJETOS PAGE ---------------- */
+function Projetos() {
+  const [busca,setBusca] = useState('');
+  const [filtroStatus,setFiltroStatus] = useState('');
+  const [modalOpen,setModalOpen] = useState(false);
+  const [editando,setEditando] = useState(null);
+  const filtrado = PROJETOS.filter(p=>{
+    const t = busca.toLowerCase();
+    return (!busca || p.cliente.toLowerCase().includes(t) || p.projeto.toLowerCase().includes(t)) && (!filtroStatus || p.status===filtroStatus);
+  });
+  return (
+    <div className="p-6">
+      <PageHeader title="Projetos" subtitle={`${filtrado.length} projeto${filtrado.length!==1?'s':''}`}
+        actions={<button className="btn-primary flex items-center gap-2" onClick={()=>{setEditando(null);setModalOpen(true);}}><IPlus size={16}/> Novo Projeto</button>}/>
+      <div className="card p-4 mb-5">
+        <div className="flex flex-wrap gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><ISearch/></span>
+            <input className="input pl-9" placeholder="Buscar por cliente, projeto, FLUIG..." value={busca} onChange={e=>setBusca(e.target.value)}/>
+          </div>
+          <select className="select w-auto min-w-[200px]" value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)}>
+            <option value="">Todos os status</option>
+            {['PENDENTE','APROVAÇÃO CLIENTE','COMPATIBILIZAÇÃO','CADASTRO','CONTROLADORIA','IMPLANTAÇÃO','EM ANDAMENTO','FINALIZADO','CANCELADO'].map(s=><option key={s}>{s}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                {['Status','MF','FLUIG','Mês','Cliente','Projeto','Tipologia','Área','Proposta','Aprov. Cliente','Implantação','R$ Total',''].map(h=>(
+                  <th key={h} className="text-left px-4 py-3 font-semibold text-slate-600 whitespace-nowrap text-xs uppercase tracking-wide">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filtrado.map(p=>(
+                <tr key={p.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3"><StatusBadge status={p.status}/></td>
+                  <td className="px-4 py-3 text-slate-600 font-mono text-xs">{p.mf}</td>
+                  <td className="px-4 py-3 text-slate-600 font-mono text-xs">{p.fluig}</td>
+                  <td className="px-4 py-3 text-slate-500 text-xs">{p.mes}</td>
+                  <td className="px-4 py-3 font-medium text-slate-900 max-w-[160px] truncate">{p.cliente}</td>
+                  <td className="px-4 py-3 text-slate-600 max-w-[180px] truncate">{p.projeto}</td>
+                  <td className="px-4 py-3 text-slate-500 text-xs">{p.tipologia}</td>
+                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{p.area.toLocaleString('pt-BR')} m²</td>
+                  <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{p.proposta}</td>
+                  <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{p.aprovCliente}</td>
+                  <td className="px-4 py-3 text-slate-500 whitespace-nowrap">{p.implantacao}</td>
+                  <td className="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">{fmtMoeda(p.rTotal)}</td>
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-1">
+                      <button onClick={()=>{setEditando(p);setModalOpen(true);}} className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><IPencil/></button>
+                      <button className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg"><ITrash/></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <Modal open={modalOpen} onClose={()=>setModalOpen(false)} title={editando?'Editar Projeto':'Novo Projeto'}>
+        <ProjForm inicial={editando} onCancelar={()=>setModalOpen(false)} onSalvar={()=>setModalOpen(false)}/>
+      </Modal>
+    </div>
+  );
+}
+
+function ProjForm({ inicial, onSalvar, onCancelar }) {
+  const [form,setForm] = useState(inicial || { status:'PENDENTE', mf:'', fluig:'', mes:'ABRIL', cliente:'', projeto:'', tipologia:'SOBRADO LUXO', area:'', proposta:'', aprovCliente:'', implantacao:'', rTotal:'' });
+  const set = (k,v) => setForm(p=>({...p,[k]:v}));
+  return (
+    <form onSubmit={e=>{e.preventDefault();onSalvar();}} className="space-y-5">
+      {/* Seção geral */}
+      <div>
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{color:'var(--text-muted)', marginBottom:12}}>Informações gerais</p>
+        <div className="grid grid-cols-2 gap-4">
+          <div><label className="label">Status</label>
+            <select className="select" value={form.status} onChange={e=>set('status',e.target.value)}>
+              {['PENDENTE','APROVAÇÃO CLIENTE','COMPATIBILIZAÇÃO','CADASTRO','CONTROLADORIA','IMPLANTAÇÃO','EM ANDAMENTO','FINALIZADO','CANCELADO'].map(s=><option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div><label className="label">Mês</label>
+            <select className="select" value={form.mes} onChange={e=>set('mes',e.target.value)}>{MESES.map(m=><option key={m}>{m}</option>)}</select>
+          </div>
+          <div><label className="label">Número MF</label><input className="input" value={form.mf||''} onChange={e=>set('mf',e.target.value)} placeholder="MF-000"/></div>
+          <div><label className="label">FLUIG</label><input className="input" value={form.fluig||''} onChange={e=>set('fluig',e.target.value)} placeholder="00000"/></div>
+          <div className="col-span-2"><label className="label">Cliente</label><input className="input" value={form.cliente} onChange={e=>set('cliente',e.target.value)} placeholder="Nome do cliente"/></div>
+          <div className="col-span-2"><label className="label">Projeto</label><input className="input" value={form.projeto} onChange={e=>set('projeto',e.target.value)} placeholder="Descrição do projeto"/></div>
+          <div><label className="label">Tipologia</label>
+            <select className="select" value={form.tipologia} onChange={e=>set('tipologia',e.target.value)}>
+              {['COB. PONTALETES','SOBRADO LUXO','SOBRADO ALTO PADRÃO','CASA ALTO PADRÃO','GALPÃO','COMERCIAL','INDUSTRIAL','MISTO'].map(s=><option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div><label className="label">Área (m²)</label><input className="input" type="number" value={form.area} onChange={e=>set('area',e.target.value)}/></div>
+        </div>
+      </div>
+
+      {/* Seção etapas */}
+      <div style={{borderTop:'1px solid var(--border)', paddingTop:16}}>
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{color:'var(--text-muted)', marginBottom:12}}>Etapas (datas)</p>
+        <div className="grid grid-cols-3 gap-4">
+          <div><label className="label">Proposta</label><input className="input" type="date" value={form.proposta} onChange={e=>set('proposta',e.target.value)}/></div>
+          <div><label className="label">Aprovação Cliente</label><input className="input" type="date" value={form.aprovCliente} onChange={e=>set('aprovCliente',e.target.value)}/></div>
+          <div><label className="label">Implantação</label><input className="input" type="date" value={form.implantacao} onChange={e=>set('implantacao',e.target.value)}/></div>
+        </div>
+      </div>
+
+      {/* Seção financeira */}
+      <div style={{borderTop:'1px solid var(--border)', paddingTop:16}}>
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{color:'var(--text-muted)', marginBottom:12}}>Financeiro</p>
+        <div><label className="label">Valor Total (R$)</label><input className="input" type="number" value={form.rTotal} onChange={e=>set('rTotal',e.target.value)}/></div>
+      </div>
+
+      <div className="flex items-center justify-end gap-2 pt-4 border-t" style={{borderColor:'var(--border)'}}>
+        <button type="button" className="btn-secondary" onClick={onCancelar}>Cancelar</button>
+        <button type="submit" className="btn-primary">Salvar</button>
+      </div>
+    </form>
+  );
+}
+
+/* ---------------- CÁLCULOS PAGE ---------------- */
+function Calculos() {
+  return (
+    <div className="p-6">
+      <PageHeader title="Cálculos" subtitle={`${CALCULOS.length} cálculo${CALCULOS.length!==1?'s':''} técnico${CALCULOS.length!==1?'s':''}`}
+        actions={<button className="btn-primary flex items-center gap-2"><IPlus size={16}/> Novo Cálculo</button>}/>
+      <div className="card p-4 mb-5">
+        <div className="flex gap-3">
+          <div className="relative flex-1">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"><ISearch/></span>
+            <input className="input pl-9" placeholder="Buscar em cálculos..."/>
+          </div>
+          <button className="btn-secondary flex items-center gap-2"><IFilter/> Metodologia</button>
+          <button className="btn-secondary flex items-center gap-2"><IFilter/> Escopo</button>
+        </div>
+      </div>
+      <div className="card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              {['Status','Projeto','Cliente','Metodologia','Escopo','Responsável','Entrega',''].map(h=>(
+                <th key={h} className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {CALCULOS.map(c=>(
+              <tr key={c.id} className="hover:bg-slate-50">
+                <td className="px-4 py-3"><StatusBadge status={c.status}/></td>
+                <td className="px-4 py-3 font-medium text-slate-900">{c.projeto}</td>
+                <td className="px-4 py-3 text-slate-600">{c.cliente}</td>
+                <td className="px-4 py-3"><span className="text-[11px] font-semibold px-2 py-0.5 rounded" style={{background:'#f1f5f9',color:'#334155'}}>{c.metodologia}</span></td>
+                <td className="px-4 py-3 text-slate-600 text-xs">{c.escopo}</td>
+                <td className="px-4 py-3 text-slate-600">{c.responsavel}</td>
+                <td className="px-4 py-3 text-slate-500">{c.entrega}</td>
+                <td className="px-4 py-3 text-right"><button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><IPencil/></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- ARQUITETURA PAGE ---------------- */
+function Arquitetura() {
+  const dados = [
+    { id:1, status:'EM ANDAMENTO', projeto:'Residencial Aurora — Bloco A', cliente:'Construtora Vitale', pranchas:18, revisao:'R04', atualizacao:'20/04/26', responsavel:'Arq. Luana Paiva' },
+    { id:2, status:'ENTREGUE', projeto:'Residencial Vista Serra', cliente:'Construtora Horizonte', pranchas:24, revisao:'FINAL', atualizacao:'03/02/26', responsavel:'Arq. Luana Paiva' },
+    { id:3, status:'PENDENTE', projeto:'Casa Jardim Europa', cliente:'Família Hayashi', pranchas:0, revisao:'R00', atualizacao:'—', responsavel:'—' },
+    { id:4, status:'EM ANDAMENTO', projeto:'Torre Comercial Pinheiros', cliente:'Incorporadora Lume', pranchas:32, revisao:'R02', atualizacao:'18/04/26', responsavel:'Arq. Diego Teles' },
+  ];
+  return (
+    <div className="p-6">
+      <PageHeader title="Arquitetura" subtitle={`${dados.length} documentos`}
+        actions={<button className="btn-primary flex items-center gap-2"><IPlus size={16}/> Novo Documento</button>}/>
+      <div className="card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              {['Status','Projeto','Cliente','Pranchas','Revisão','Atualização','Responsável',''].map(h=>(
+                <th key={h} className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {dados.map(d=>(
+              <tr key={d.id} className="hover:bg-slate-50">
+                <td className="px-4 py-3"><StatusBadge status={d.status}/></td>
+                <td className="px-4 py-3 font-medium text-slate-900">{d.projeto}</td>
+                <td className="px-4 py-3 text-slate-600">{d.cliente}</td>
+                <td className="px-4 py-3 text-slate-700 font-semibold">{d.pranchas}</td>
+                <td className="px-4 py-3"><span className="font-mono text-xs px-2 py-0.5 rounded" style={{background:'#f1f5f9',color:'#334155'}}>{d.revisao}</span></td>
+                <td className="px-4 py-3 text-slate-500">{d.atualizacao}</td>
+                <td className="px-4 py-3 text-slate-600">{d.responsavel}</td>
+                <td className="px-4 py-3 text-right"><button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><IPencil/></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- RELATÓRIOS PAGE ---------------- */
+function Relatorios() {
+  const [tipoRel, setTipoRel] = useState('orcamentos');
+  const [filtroMes, setFiltroMes] = useState('');
+  const [filtroStatus, setFiltroStatus] = useState('');
+  const [filtroRep, setFiltroRep] = useState('');
+  const [filtroResp, setFiltroResp] = useState('');
+  const [filtroCliente, setFiltroCliente] = useState('');
+
+  const dados = tipoRel === 'orcamentos' ? ORCAMENTOS : PROJETOS;
+  const campos = tipoRel === 'orcamentos'
+    ? ['fluig', 'mes', 'cliente', 'projeto', 'status', 'area', 'valorTotal', 'responsavel', 'reparticao', 'tipologia']
+    : ['mf', 'fluig', 'mes', 'cliente', 'projeto', 'status', 'proposta', 'aprovCliente', 'implantacao', 'area', 'rTotal', 'responsavel', 'reparticao', 'tipologia'];
+
+  const filtrado = dados.filter(d => {
+    return (!filtroMes || d.mes === filtroMes)
+      && (!filtroStatus || d.status === filtroStatus)
+      && (!filtroRep || d.reparticao === filtroRep)
+      && (!filtroResp || d.responsavel === filtroResp)
+      && (!filtroCliente || d.cliente.toLowerCase().includes(filtroCliente.toLowerCase()));
+  });
+
+  const statusDist = filtrado.reduce((a,d) => {a[d.status] = (a[d.status]||0) + 1; return a;}, {});
+  const totalValor = tipoRel === 'orcamentos' 
+    ? filtrado.reduce((a,d) => a + (d.valorTotal||0), 0)
+    : filtrado.reduce((a,d) => a + (d.rTotal||0), 0);
+  const totalArea = filtrado.reduce((a,d) => a + (d.area||0), 0);
+
+  const subPorRep = {};
+  filtrado.forEach(d => {
+    const rep = d.reparticao;
+    if (!subPorRep[rep]) subPorRep[rep] = { count: 0, valor: 0 };
+    subPorRep[rep].count++;
+    subPorRep[rep].valor += tipoRel === 'orcamentos' ? (d.valorTotal||0) : (d.rTotal||0);
+  });
+
+  const exportarCSV = () => {
+    const headers = ['FLUIG/MF', 'Mês', 'Cliente', 'Projeto', 'Status', 'Área', 'Valor', 'Responsável', 'Repartição', 'Tipologia'];
+    const rows = filtrado.map(d => [
+      tipoRel === 'orcamentos' ? d.fluig : d.mf,
+      d.mes, d.cliente, d.projeto, d.status, d.area, 
+      tipoRel === 'orcamentos' ? d.valorTotal : d.rTotal,
+      d.responsavel, d.reparticao, d.tipologia
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio-${tipoRel}-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+  };
+
+  const exportarJSON = () => {
+    const data = { tipo: tipoRel, geradoEm: new Date().toISOString(), total: filtrado.length, dados: filtrado };
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `relatorio-${tipoRel}-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+  };
+
+  const exportarExcel = () => {
+    alert('✓ Exportar Excel — em desenvolvimento. Por enquanto, use CSV e importe no Excel, ou PDF para visualizar.');
+  };
+
+  const exportarPDF = () => {
+    alert('✓ Exportar PDF — em desenvolvimento. Você consegue usar Cmd+P (Mac) ou Ctrl+P (Windows) nesta página para salvar como PDF.');
+  };
+
+  return (
+    <div className="p-6 space-y-6">
+      <PageHeader title="Relatórios" subtitle="Geração de relatórios com filtros e exportação"/>
+
+      {/* Tipo de relatório */}
+      <div className="card p-5">
+        <p className="text-sm font-semibold mb-3">Tipo de relatório</p>
+        <div className="flex gap-3">
+          {[
+            {val:'orcamentos', label:'Orçamentos'},
+            {val:'projetos', label:'Projetos'},
+          ].map(op => (
+            <label key={op.val} className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="tipo" value={op.val} checked={tipoRel===op.val} onChange={e=>setTipoRel(e.target.value)} className="w-4 h-4"/>
+              <span className="text-sm font-medium">{op.label}</span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Filtros */}
+      <div className="card p-5">
+        <p className="text-sm font-semibold mb-3">Filtros</p>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+          <div>
+            <label className="label">Período</label>
+            <select className="select text-sm" value={filtroMes} onChange={e=>setFiltroMes(e.target.value)}>
+              <option value="">Todos</option>
+              {MESES.map(m=><option key={m}>{m}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">Status</label>
+            <select className="select text-sm" value={filtroStatus} onChange={e=>setFiltroStatus(e.target.value)}>
+              <option value="">Todos</option>
+              {(tipoRel === 'orcamentos' 
+                ? ['PENDENTE','EM ANÁLISE','APROVAÇÃO CLIENTE','APROVADO','FINALIZADO','CANCELADO','NÃO FECHADO']
+                : ['PENDENTE','APROVAÇÃO CLIENTE','COMPATIBILIZAÇÃO','CADASTRO','CONTROLADORIA','IMPLANTAÇÃO','EM ANDAMENTO','FINALIZADO','CANCELADO']
+              ).map(s=><option key={s}>{s}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">Repartição</label>
+            <select className="select text-sm" value={filtroRep} onChange={e=>setFiltroRep(e.target.value)}>
+              <option value="">Todas</option>
+              {['NEXFRAME','ISOTELHADO','ISM'].map(r=><option key={r}>{r}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="label">Responsável</label>
+            <input type="text" className="input text-sm" value={filtroResp} onChange={e=>setFiltroResp(e.target.value)} placeholder="Nome"/>
+          </div>
+          <div>
+            <label className="label">Cliente</label>
+            <input type="text" className="input text-sm" value={filtroCliente} onChange={e=>setFiltroCliente(e.target.value)} placeholder="Nome"/>
+          </div>
+        </div>
+        {(filtroMes||filtroStatus||filtroRep||filtroResp||filtroCliente) && (
+          <button className="btn-ghost text-xs mt-3" onClick={()=>{setFiltroMes('');setFiltroStatus('');setFiltroRep('');setFiltroResp('');setFiltroCliente('');}}>Limpar filtros</button>
+        )}
+      </div>
+
+      {/* Resumo */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="card p-4">
+          <p className="text-xs text-slate-500 uppercase font-semibold">Total de registros</p>
+          <p className="text-3xl font-bold mt-1">{filtrado.length}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-slate-500 uppercase font-semibold">Área total (m²)</p>
+          <p className="text-3xl font-bold mt-1">{totalArea.toLocaleString('pt-BR')}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-slate-500 uppercase font-semibold">Valor total</p>
+          <p className="text-xl font-bold text-green-700 mt-1">{fmtMoeda(totalValor)}</p>
+        </div>
+        <div className="card p-4">
+          <p className="text-xs text-slate-500 uppercase font-semibold">Média por registro</p>
+          <p className="text-xl font-bold mt-1">{fmtMoeda(filtrado.length > 0 ? totalValor / filtrado.length : 0)}</p>
+        </div>
+      </div>
+
+      {/* Distribuição por status */}
+      <div className="card p-5">
+        <p className="text-sm font-semibold mb-4">Distribuição por status</p>
+        <div className="space-y-2">
+          {Object.entries(statusDist).sort((a,b)=>b[1]-a[1]).map(([s,c])=>(
+            <div key={s} className="flex items-center gap-3">
+              <span className="w-32 text-xs text-slate-600">{s}</span>
+              <div className="flex-1 bg-slate-200 rounded-full h-2">
+                <div style={{width:`${(c/filtrado.length)*100}%`,background:'#1f7a95',height:'100%',borderRadius:9999}}/>
+              </div>
+              <span className="w-12 text-right text-xs font-semibold">{c}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Subtotais por repartição */}
+      <div className="card p-5">
+        <p className="text-sm font-semibold mb-4">Subtotais por repartição</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Object.entries(subPorRep).map(([rep, {count, valor}])=>(
+            <div key={rep} className="p-3 border rounded-lg" style={{borderColor:'var(--border)'}}>
+              <p className="text-xs font-semibold uppercase" style={{color:'var(--text-muted)'}}>{rep}</p>
+              <p className="text-lg font-bold mt-1">{count} {tipoRel === 'orcamentos' ? 'orç.' : 'proj.'}</p>
+              <p className="text-sm font-semibold text-green-700">{fmtMoeda(valor)}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tabela de dados */}
+      <div className="card overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-slate-50 border-b" style={{borderColor:'var(--border)'}}>
+                {[
+                  tipoRel === 'orcamentos' ? 'FLUIG' : 'MF',
+                  'Mês', 'Cliente', 'Projeto', 'Status', 'Área (m²)',
+                  tipoRel === 'orcamentos' ? 'Valor' : 'R$ Total',
+                  'Responsável', 'Repartição', 'Tipologia'
+                ].map(h=>(
+                  <th key={h} className="text-left px-4 py-2 font-semibold" style={{color:'var(--text-muted)'}}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y" style={{borderColor:'var(--border)'}}>
+              {filtrado.slice(0,50).map((d,i)=>(
+                <tr key={i} style={{borderColor:'var(--border)'}}>
+                  <td className="px-4 py-2 font-mono">{tipoRel === 'orcamentos' ? d.fluig : d.mf}</td>
+                  <td className="px-4 py-2">{d.mes}</td>
+                  <td className="px-4 py-2">{d.cliente}</td>
+                  <td className="px-4 py-2 max-w-[200px] truncate">{d.projeto}</td>
+                  <td className="px-4 py-2"><StatusBadge status={d.status}/></td>
+                  <td className="px-4 py-2">{d.area.toLocaleString('pt-BR')}</td>
+                  <td className="px-4 py-2 font-semibold">{fmtMoeda(tipoRel === 'orcamentos' ? d.valorTotal : d.rTotal)}</td>
+                  <td className="px-4 py-2">{d.responsavel}</td>
+                  <td className="px-4 py-2">{d.reparticao}</td>
+                  <td className="px-4 py-2">{d.tipologia}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="px-4 py-2 bg-slate-50 border-t text-xs" style={{borderColor:'var(--border)'}}>
+          {filtrado.length > 50 && <span>Exibindo 50 de {filtrado.length} registros</span>}
+        </div>
+      </div>
+
+      {/* Exportação */}
+      <div className="card p-5">
+        <p className="text-sm font-semibold mb-3">Exportar relatório</p>
+        <div className="flex flex-wrap gap-2">
+          <button className="btn-secondary flex items-center gap-2" onClick={exportarCSV}>
+            📄 Exportar CSV
+          </button>
+          <button className="btn-secondary flex items-center gap-2" onClick={exportarJSON}>
+            📊 Exportar JSON
+          </button>
+          <button className="btn-secondary flex items-center gap-2" onClick={exportarExcel}>
+            📈 Exportar Excel
+          </button>
+          <button className="btn-secondary flex items-center gap-2" onClick={exportarPDF}>
+            🖨️ Exportar PDF
+          </button>
+          <button className="btn-ghost flex items-center gap-2" onClick={()=>window.print()}>
+            🖨️ Imprimir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- ART PAGE ---------------- */
+function ART() {
+  return (
+    <div className="p-6">
+      <PageHeader title="ART — Relatórios Técnicos" subtitle={`${ARTS.length} anotação${ARTS.length!==1?'ões':''} de responsabilidade`}
+        actions={<button className="btn-primary flex items-center gap-2"><IPlus size={16}/> Nova ART</button>}/>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+        <KpiCard label="Emitidas" value={ARTS.filter(a=>a.status==='EMITIDA'||a.status==='FINALIZADO').length} icon={ICheck} cor="green"/>
+        <KpiCard label="Em processo" value={ARTS.filter(a=>['PENDENTE','APROVAÇÃO RASCUNHO','AGENDADO FINANCEIRO'].includes(a.status)).length} icon={IClock} cor="orange"/>
+        <KpiCard label="Fechadas" value={ARTS.filter(a=>a.fechado==='SIM').length} icon={IAward} cor="blue"/>
+      </div>
+      <div className="card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              {['Status','Nº ART','Modalidade','Cliente','Projeto','CREA','Emissão','Fechado',''].map(h=>(
+                <th key={h} className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {ARTS.map(a=>(
+              <tr key={a.id} className="hover:bg-slate-50">
+                <td className="px-4 py-3"><StatusBadge status={a.status}/></td>
+                <td className="px-4 py-3 font-mono text-xs text-slate-700">{a.numero}</td>
+                <td className="px-4 py-3 text-slate-600 text-xs">{a.modalidade}</td>
+                <td className="px-4 py-3 font-medium text-slate-900">{a.cliente}</td>
+                <td className="px-4 py-3 text-slate-600 max-w-[200px] truncate">{a.projeto}</td>
+                <td className="px-4 py-3 text-slate-500 font-mono text-xs">{a.crea}</td>
+                <td className="px-4 py-3 text-slate-500">{a.emissao}</td>
+                <td className="px-4 py-3">
+                  <span className={`inline-flex items-center gap-1 text-xs font-semibold ${a.fechado==='SIM'?'text-green-700':'text-slate-400'}`}>
+                    {a.fechado==='SIM' ? '● SIM' : '○ NÃO'}
+                  </span>
+                </td>
+                <td className="px-4 py-3 text-right"><button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><IPencil/></button></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- ADMIN / USUÁRIOS ---------------- */
+function Admin() {
+  return (
+    <div className="p-6">
+      <PageHeader title="Usuários" subtitle={`${USUARIOS.length} usuários · Administração`}
+        actions={<button className="btn-primary flex items-center gap-2"><IPlus size={16}/> Convidar Usuário</button>}/>
+      <div className="card overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              {['Nome','E-mail','Perfil','Status',''].map(h=>(
+                <th key={h} className="text-left px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-wide">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {USUARIOS.map(u=>{
+              const ini = u.nome.split(' ').slice(0,2).map(n=>n[0]).join('');
+              const perfilCor = { gestor:'#faf5ff;#6b21a8', comercial:'#eff6ff;#1d4ed8', tecnico:'#f0fdf4;#166534', controladoria:'#fff7ed;#9a3412' }[u.perfil].split(';');
+              return (
+                <tr key={u.id} className="hover:bg-slate-50">
+                  <td className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{background:'#1d4ed8'}}>{ini}</div>
+                      <span className="font-medium text-slate-900">{u.nome}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-3 text-slate-600">{u.email}</td>
+                  <td className="px-4 py-3">
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold capitalize" style={{background:perfilCor[0],color:perfilCor[1]}}>{u.perfil}</span>
+                  </td>
+                  <td className="px-4 py-3">
+                    <span className={`inline-flex items-center gap-1.5 text-xs font-semibold ${u.ativo?'text-green-700':'text-slate-400'}`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${u.ativo?'bg-green-500':'bg-slate-300'}`}/> {u.ativo?'Ativo':'Inativo'}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <button className="p-1.5 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg"><IPencil/></button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+/* ---------------- APP ---------------- */
+function App() {
+  const [logged, setLogged] = useState(() => localStorage.getItem('isocs_logged') === '1');
+  const [route, setRoute] = useState(() => localStorage.getItem('isocs_route') || 'dashboard');
+  const [theme, setTheme] = useState(() => localStorage.getItem('isocs_theme') || 'light');
+
+  useEffect(() => { localStorage.setItem('isocs_logged', logged ? '1' : '0'); }, [logged]);
+  useEffect(() => { localStorage.setItem('isocs_route', route); }, [route]);
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('isocs_theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => setTheme(t => t === 'dark' ? 'light' : 'dark');
+
+  if (!logged) return <Login onLogin={() => setLogged(true)} />;
+
+  const titulos = { dashboard:'Dashboard', orcamentos:'Orçamentos', projetos:'Projetos', ferramentas:'Ferramentas', relatorios:'Relatórios', isotrack:'Isotrack', art:'ART', admin:'Usuários' };
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      <Sidebar route={route} setRoute={setRoute} onLogout={() => setLogged(false)}/>
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <Topbar titulo={titulos[route]} theme={theme} onToggleTheme={toggleTheme}/>
+        <main className="flex-1 overflow-y-auto">
+          {route === 'dashboard' && <Dashboard/>}
+          {route === 'orcamentos' && <Orcamentos/>}
+          {route === 'projetos' && <Projetos/>}
+          {route === 'calculos' && <Calculos/>}
+          {route === 'ferramentas' && <Ferramentas/>}
+          {route === 'relatorios' && <Relatorios/>}
+          {route === 'isotrack' && <Isotrack/>}
+          {route === 'arquitetura' && <Arquitetura/>}
+          {route === 'art' && <ART/>}
+          {route === 'admin' && <Admin/>}
+        </main>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
